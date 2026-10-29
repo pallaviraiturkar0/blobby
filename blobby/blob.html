@@ -1,0 +1,100 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:transparent;overflow:hidden;font-family:-apple-system,sans-serif;user-select:none;-webkit-user-select:none}
+#wrap{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:96px;height:120px;cursor:pointer}
+#blob{position:absolute;bottom:18px;left:8px;width:80px;height:66px;border-radius:50% 50% 44% 44%/60% 60% 40% 40%;
+ background:radial-gradient(circle at 35% 30%,#b9f6ca,#4ade80 45%,#16a34a);box-shadow:inset -6px -8px 0 rgba(0,0,0,.12),0 6px 10px rgba(0,0,0,.25);
+ animation:breathe 3s ease-in-out infinite;transform-origin:bottom center;transition:background .4s}
+.focus #blob{background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 45%,#d97706)}
+.sleep #blob{background:radial-gradient(circle at 35% 30%,#c7d2fe,#818cf8 45%,#4f46e5);animation:breathe 5s ease-in-out infinite}
+.alert #blob{background:radial-gradient(circle at 35% 30%,#bae6fd,#38bdf8 45%,#0284c7)}
+.walk #blob{animation:hop .45s ease-in-out infinite}
+.happy #blob{animation:dance .5s ease-in-out infinite}
+.alert #blob{animation:hop .35s ease-in-out infinite}
+.left #face{transform:translateX(-6px)} .right #face{transform:translateX(6px)}
+#face{position:absolute;top:20px;left:0;right:0;transition:transform .3s}
+.eye{position:absolute;top:0;width:10px;height:14px;background:#1f2937;border-radius:50%;animation:blink 4s infinite}
+.eye.l{left:24px}.eye.r{right:24px}
+.eye::after{content:"";position:absolute;top:2px;left:2px;width:4px;height:4px;background:#fff;border-radius:50%}
+.sleep .eye{height:3px;top:6px;animation:none;border-radius:2px}.sleep .eye::after{display:none}
+.happy .eye{height:8px;border-radius:10px 10px 0 0;background:transparent;border:3px solid #1f2937;border-bottom:none;width:8px}.happy .eye::after{display:none}
+#mouth{position:absolute;top:20px;left:50%;width:14px;height:7px;margin-left:-7px;border-bottom:3px solid #1f2937;border-radius:0 0 10px 10px}
+.sleep #mouth{width:6px;height:6px;margin-left:-3px;border:2px solid #1f2937;border-radius:50%}
+.happy #mouth,.alert #mouth{height:9px;background:#7f1d1d;border:none;border-radius:0 0 12px 12px}
+.cheek{position:absolute;top:16px;width:9px;height:5px;background:#f472b6;opacity:.55;border-radius:50%}.cheek.l{left:12px}.cheek.r{right:12px}
+#band{display:none;position:absolute;top:9px;left:4px;right:4px;height:7px;background:#dc2626;border-radius:4px}
+.focus #band{display:block}
+.call #blob{background:radial-gradient(circle at 35% 30%,#ddd6fe,#a78bfa 45%,#7c3aed);animation:breathe 4s ease-in-out infinite}
+#phones{display:none;position:absolute;top:-8px;left:2px;right:2px;height:40px;border:5px solid #1f2937;border-bottom:none;border-radius:40px 40px 0 0}
+.cup{position:absolute;top:26px;width:12px;height:20px;background:#1f2937;border-radius:5px}.cup.l{left:-11px}.cup.r{right:-11px}
+.call #phones{display:block}
+#live{display:none;position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 9px sans-serif;color:#fff;background:#dc2626;padding:2px 5px;border-radius:6px;white-space:nowrap;animation:pulse 1.6s ease-in-out infinite}
+.call #live{display:block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.away #blob{background:radial-gradient(circle at 35% 30%,#fecdd3,#fb7185 45%,#e11d48);animation:breathe 6s ease-in-out infinite}
+.away .eye{height:3px;top:6px;animation:none;border-radius:2px}.away .eye::after{display:none}
+#sign{display:none;position:absolute;top:-6px;left:50%;transform:translateX(-50%) rotate(-4deg);background:#fef3c7;color:#78350f;
+ font:700 11px sans-serif;padding:4px 8px;border:2px solid #92400e;border-radius:4px;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.away #sign{display:block}
+#hat{display:none;position:absolute;left:50%;transform:translateX(-50%)}#prop{display:none;position:absolute;right:-18px;bottom:-4px;font-size:24px}
+body[data-fest] #prop{display:block}body[data-fest] #live{top:70px}body[data-fest] #sign{top:-46px}
+/* witch hat */
+[data-fest=halloween] #hat{display:block;top:-38px;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:40px solid #1f1235}
+[data-fest=halloween] #hat::after{content:"";position:absolute;top:36px;left:-34px;width:68px;height:8px;background:#1f1235;border-radius:50%}
+[data-fest=halloween] #hat::before{content:"";position:absolute;top:26px;left:-12px;width:24px;height:6px;background:#f97316}
+[data-fest=halloween]:not(.call):not(.away):not(.focus) #blob{background:radial-gradient(circle at 35% 30%,#fed7aa,#fb923c 45%,#ea580c)}
+/* party hat */
+[data-fest=birthday] #hat,[data-fest=newyear] #hat{display:block;top:-34px;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:38px solid #ec4899}
+[data-fest=newyear] #hat{border-bottom-color:#eab308}
+[data-fest=birthday] #hat::after,[data-fest=newyear] #hat::after{content:"";position:absolute;top:-8px;left:-6px;width:12px;height:12px;background:#fde047;border-radius:50%}
+/* santa hat */
+[data-fest=christmas] #hat{display:block;top:-28px;width:0;height:0;border-left:26px solid transparent;border-right:22px solid transparent;border-bottom:32px solid #dc2626;transform:translateX(-45%) rotate(12deg)}
+[data-fest=christmas] #hat::before{content:"";position:absolute;top:28px;left:-34px;width:64px;height:11px;background:#fff;border-radius:6px}
+[data-fest=christmas] #hat::after{content:"";position:absolute;top:-6px;left:-6px;width:13px;height:13px;background:#fff;border-radius:50%}
+[data-fest=holi]:not(.call):not(.away):not(.focus) #blob{background:conic-gradient(from 30deg,#f472b6,#facc15,#4ade80,#38bdf8,#a78bfa,#f472b6)}
+[data-fest=stpatricks]:not(.call):not(.away):not(.focus) #blob{background:radial-gradient(circle at 35% 30%,#bbf7d0,#22c55e 45%,#15803d)}
+[data-fest=diwali] #blob{box-shadow:inset -6px -8px 0 rgba(0,0,0,.12),0 0 22px 6px rgba(251,191,36,.7)}
+[data-fest=birthday] #wrap::before{content:"🎊";position:absolute;top:-10px;left:-14px;font-size:20px;animation:float 2s infinite}
+/* Launch day: galaxy blob, gold party hat, sparkles */
+[data-fest=launch]:not(.call):not(.away):not(.focus) #blob{background:radial-gradient(circle at 30% 25%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 60%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 55% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 35% 30%,#c4b5fd,#7c3aed 45%,#1e1b4b)}
+[data-fest=launch] #hat{display:block;top:-34px;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:38px solid #eab308}
+[data-fest=launch] #hat::after{content:"";position:absolute;top:-8px;left:-6px;width:12px;height:12px;background:#f0abfc;border-radius:50%}
+[data-fest=launch] #wrap::before{content:"✨";position:absolute;top:-10px;left:-14px;font-size:18px;animation:float 2s infinite}
+#shadow{position:absolute;bottom:12px;left:18px;width:60px;height:8px;background:rgba(0,0,0,.25);border-radius:50%;filter:blur(2px)}
+#timer{position:absolute;bottom:0;left:0;right:0;text-align:center;font:600 11px ui-monospace,monospace;color:#fff;text-shadow:0 1px 2px #000}
+#zzz{display:none;position:absolute;top:8px;right:-4px;font:700 14px sans-serif;color:#a5b4fc;animation:float 2s ease-in-out infinite}
+.sleep #zzz{display:block}
+#bubble{position:absolute;bottom:128px;left:50%;transform:translateX(-50%) scale(.6);opacity:0;max-width:200px;width:max-content;
+ background:#fff;color:#111;padding:7px 10px;border-radius:12px;font-size:12px;line-height:1.3;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:.25s;text-align:center}
+#bubble::after{content:"";position:absolute;bottom:-6px;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:#fff;border-bottom:0}
+#bubble.show{opacity:1;transform:translateX(-50%) scale(1)}
+#heart{position:absolute;top:0;left:50%;opacity:0;font-size:18px}
+#heart.go{animation:heart 1s ease-out}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.04,.96)}}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1.05,.95)}50%{transform:translateY(-8px) scale(.95,1.05)}}
+@keyframes dance{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(8deg) translateY(-10px)}}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@keyframes float{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-6px);opacity:1}}
+@keyframes heart{0%{opacity:1;transform:translate(-50%,40px)}100%{opacity:0;transform:translate(-50%,-10px) scale(1.5)}}
+</style></head><body>
+<div id="bubble"></div>
+<div id="wrap" title="Click: start/stop 25-min focus · Drag: move me">
+ <div id="shadow"></div>
+ <div id="blob"><div id="hat"></div><div id="prop"></div><div id="band"></div><div id="phones"><div class="cup l"></div><div class="cup r"></div></div><div id="live">● LIVE</div><div id="zzz">z z</div>
+  <div id="face"><div class="eye l"></div><div class="eye r"></div><div class="cheek l"></div><div class="cheek r"></div><div id="mouth"></div></div>
+ </div>
+ <div id="sign"></div><div id="heart">💚</div>
+ <div id="timer"></div>
+</div>
+<script>
+const body=document.body,bubble=document.getElementById('bubble'),timer=document.getElementById('timer'),heart=document.getElementById('heart');
+let bt;
+function setState(s,dir){body.className=s+(dir?' '+dir:'')}
+function say(t,ms){bubble.textContent=t;bubble.classList.add('show');clearTimeout(bt);bt=setTimeout(()=>bubble.classList.remove('show'),ms||5000)}
+function setTimer(t){timer.textContent=t}
+const post=m=>window.webkit.messageHandlers.blob.postMessage(m);
+function setFest(k,prop){if(k){body.dataset.fest=k;document.getElementById('prop').textContent=prop||''}else{delete body.dataset.fest}}
+function setSign(t){document.getElementById('sign').textContent=t}
+document.getElementById('wrap').addEventListener('contextmenu',e=>{e.preventDefault();post('menu')});
+document.getElementById('wrap').addEventListener('mousedown',e=>{if(e.button===0)post('down')});
+document.getElementById('wrap').addEventListener('mouseenter',()=>{heart.classList.remove('go');void heart.offsetWidth;heart.classList.add('go');post('pet')});
+</script></body></html>
