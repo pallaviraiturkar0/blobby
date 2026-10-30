@@ -18,7 +18,7 @@ local config = {
   hotkeyToggle   = "B",
 }
 
-local FOCUS_MIN, STRETCH_MIN, WATER_MIN
+local STRETCH_MIN, WATER_MIN
 local W, H = 240, 190
 local wv, moveTimer, brainTimer
 local x, y, homeX, targetX, dir = nil, nil, nil, nil, nil
@@ -106,11 +106,13 @@ local function step()
   wv:frame(frameFor(x))
 end
 
-local function startFocus()
-  focusEnd = os.time() + FOCUS_MIN * 60
+-- mins defaults to config.focusMinutes so a one-off 2x session doesn't change the click length
+local function startFocus(mins)
+  mins = mins or config.focusMinutes
+  focusEnd = os.time() + mins * 60
   targetX = nil; dir = nil
   setState("focus")
-  say("Let's focus! " .. FOCUS_MIN .. " min 💪", 3000)
+  say("Let's focus! " .. mins .. " min 💪", 3000)
 end
 
 local function stopFocus(done)
@@ -251,7 +253,7 @@ local PETS = { "hehe 💚", "*happy wiggle*", "you're doing great!", "boop!", "�
 
 function M.start(opts)
   for k, v in pairs(opts or {}) do config[k] = v end
-  FOCUS_MIN, STRETCH_MIN, WATER_MIN = config.focusMinutes, config.stretchMinutes, config.waterMinutes
+  STRETCH_MIN, WATER_MIN = config.stretchMinutes, config.waterMinutes
   WANDER = config.wander
   loadTomatoes()
   local f = screen():frame()
@@ -308,8 +310,8 @@ function M.away(label, mins) startAway(label, mins) end
 function M.showMenu()
   local away = awayUntil ~= nil
   local items = {
-    { title = "🎯 Focus " .. config.focusMinutes .. " min", fn = function() if awayUntil then endAway(true) end; FOCUS_MIN = config.focusMinutes; startFocus() end },
-    { title = "🎯 Focus " .. config.focusMinutes * 2 .. " min", fn = function() if awayUntil then endAway(true) end; FOCUS_MIN = config.focusMinutes * 2; startFocus() end },
+    { title = "🎯 Focus " .. config.focusMinutes .. " min", fn = function() if awayUntil then endAway(true) end; startFocus(config.focusMinutes) end },
+    { title = "🎯 Focus " .. config.focusMinutes * 2 .. " min", fn = function() if awayUntil then endAway(true) end; startFocus(config.focusMinutes * 2) end },
     { title = "-" },
     { title = "🍜 Out for lunch (1 hr)", fn = function() startAway("🍜 Out for lunch", 60) end },
     { title = "☕ Coffee break (15 min)", fn = function() startAway("☕ On a break", 15) end },
