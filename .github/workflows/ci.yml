@@ -17,7 +17,7 @@ jobs:
       - uses: leafo/gh-actions-lua@v11
         with:
           luaVersion: "5.4"
-      - uses: leafo/gh-actions-luarocks@v5
+      - uses: leafo/gh-actions-luarocks@v6
       - run: luarocks install luacheck
       - run: luacheck blobby examples
 
