@@ -73,15 +73,18 @@ blobby.start()
 
 Blobby updates from your `git clone`, so keep the folder you installed from. These commands assume it's at `~/blobby`; use your own path if it's somewhere else.
 
+> [!TIP]
+> Cloned Blobby before `update.sh` existed? Pull once to get it: `git -C ~/blobby pull --ff-only`
+
 **Update now:**
 
 ```bash
 ~/blobby/update.sh
 ```
 
-`update.sh` fast-forwards the clone to the latest `main` (`git pull --ff-only`), copies the new files into `~/.hammerspoon/blobby/` and reloads Hammerspoon. If you're already up to date, it does nothing. It stops without changing anything if you have local edits, have local commits that aren't on GitHub, or aren't on `main`. Use `--force` to reinstall anyway.
+`update.sh` fast-forwards the clone to the latest `main` from GitHub, then runs that version's `install.sh` to copy the new files into `~/.hammerspoon/blobby/`, and reloads Hammerspoon. If you're already up to date, it does nothing. It stops without changing anything if you have local edits, have local commits that aren't on GitHub, or aren't on `main`. Use `--force` to reinstall anyway.
 
-**Update automatically (optional):** this one-time setup installs a launchd agent that runs `update.sh` when you log in and every day at 10:00.
+**Update automatically (optional):** this one-time setup installs a launchd agent that runs `update.sh` when you log in and every day at 10:00. That means new code from this repository's `main` branch is installed and run on your Mac without a review step. Skip it if you'd rather check changes yourself first.
 
 ```bash
 ~/blobby/install-autoupdate.sh              # or: --hour 18 for 18:00
