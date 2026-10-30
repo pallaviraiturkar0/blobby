@@ -29,6 +29,7 @@ for cmd in brew open launchctl; do
 done
 cat > "$WORK/bin/pgrep" <<'STUB'
 #!/usr/bin/env bash
+echo "pgrep $*" >> "$CALLS"
 [ "${STUB_HS_RUNNING:-1}" = 1 ] && [ ! -e "$HS_QUIT" ]
 STUB
 cat > "$WORK/bin/osascript" <<'STUB'
@@ -66,13 +67,14 @@ push_change "update one"
 check "update.sh pulls and reinstalls" run_update
 check "installed files match the new version" cmp -s "$CLONE/blobby/blob.html" "$DEST/blob.html"
 check "update lists the new commits" grep -q "update one" "$WORK/out"
+check "only looks for this user's Hammerspoon" called "^pgrep -x -u $(id -u) Hammerspoon"
 check "reloads Hammerspoon via AppleScript" called 'execute lua code "hs.reload()"'
 check "doesn't restart Hammerspoon when reload works" not called "^open "
 check "init.lua lines are added only once" test "$(grep -c 'require("blobby")' "$HOME/.hammerspoon/init.lua")" = 1
 
 check "no-op when already up to date" run_update
 check "says it's up to date" grep -q "Already up to date" "$WORK/out"
-check "doesn't reload when nothing changed" test ! -s "$CALLS"
+check "doesn't reload when nothing changed" not grep -qv "^pgrep " "$CALLS"
 
 git -C "$WORK/seed" pull -q --ff-only "$WORK/origin.git" main
 echo "<!-- pulled by hand -->" >> "$WORK/seed/blobby/blob.html"

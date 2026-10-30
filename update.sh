@@ -72,7 +72,8 @@ installed_matches() {
 
 log() { printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
 
-hammerspoon_running() { pgrep -x Hammerspoon >/dev/null 2>&1; }
+# Only this user's Hammerspoon (Fast User Switching can leave others running)
+hammerspoon_running() { pgrep -x -u "$(id -u)" Hammerspoon >/dev/null 2>&1; }
 
 reload_hammerspoon() {
   if ! hammerspoon_running; then
