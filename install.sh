@@ -34,6 +34,9 @@ LUA
   echo "→ Added Blobby to $INIT"
 fi
 
+# update.sh sets BLOBBY_NO_RELOAD=1 and reloads Hammerspoon itself
+if [ -n "${BLOBBY_NO_RELOAD:-}" ]; then exit 0; fi
+
 open -a Hammerspoon
 osascript -e 'tell application "Hammerspoon" to execute lua code "hs.reload()"' >/dev/null 2>&1 || true
 echo

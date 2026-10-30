@@ -40,8 +40,8 @@ Blobby walks along the bottom of your screen. Click it to start a focus timer. I
 ## 🚀 Quick start
 
 ```bash
-git clone https://github.com/pallaviraiturkar0/blobby.git
-cd blobby && ./install.sh
+git clone https://github.com/pallaviraiturkar0/blobby.git ~/blobby
+cd ~/blobby && ./install.sh
 ```
 
 The installer:
@@ -66,6 +66,41 @@ Then add this to `~/.hammerspoon/init.lua`:
 ```lua
 blobby = require("blobby")
 blobby.start()
+```
+</details>
+
+## 🔄 Keeping Blobby up to date
+
+Blobby updates from your `git clone`, so keep the folder you installed from. These commands assume it's at `~/blobby`; use your own path if it's somewhere else.
+
+**Update now:**
+
+```bash
+~/blobby/update.sh
+```
+
+`update.sh` fast-forwards the clone to the latest `main` (`git pull --ff-only`), copies the new files into `~/.hammerspoon/blobby/` and reloads Hammerspoon. If you're already up to date, it does nothing. It stops without changing anything if you have local edits, have local commits that aren't on GitHub, or aren't on `main`. Use `--force` to reinstall anyway.
+
+**Update automatically (optional):** this one-time setup installs a launchd agent that runs `update.sh` when you log in and every day at 10:00.
+
+```bash
+~/blobby/install-autoupdate.sh              # or: --hour 18 for 18:00
+```
+
+- See what it did: `cat ~/Library/Logs/blobby-update.log`
+- Turn it off: `~/blobby/install-autoupdate.sh --uninstall`
+
+> [!NOTE]
+> If your Hammerspoon config has `hs.allowAppleScript(true)`, Blobby reloads it in place after an update. Otherwise the updater quits and reopens Hammerspoon, which also resets any focus session in progress.
+
+<details>
+<summary>Installed Blobby without git?</summary>
+
+Switch to a clone once. It reinstalls into the same place and keeps your settings in `~/.hammerspoon/init.lua`:
+
+```bash
+git clone https://github.com/pallaviraiturkar0/blobby.git ~/blobby
+~/blobby/install.sh
 ```
 </details>
 
@@ -173,7 +208,7 @@ Another app is using your microphone, such as a dictation tool, a voice assistan
 <details>
 <summary>Uninstall</summary>
 
-Delete `~/.hammerspoon/blobby/` and remove the `blobby` lines from `~/.hammerspoon/init.lua`. You can also run `blobby.stop()` in the Hammerspoon console.
+If you set up auto-update, run `./install-autoupdate.sh --uninstall` first. Then delete `~/.hammerspoon/blobby/` and remove the `blobby` lines from `~/.hammerspoon/init.lua`. You can also run `blobby.stop()` in the Hammerspoon console.
 </details>
 
 ## 🤝 Contributing

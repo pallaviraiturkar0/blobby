@@ -36,7 +36,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: shellcheck install.sh
+      - run: shellcheck install.sh update.sh install-autoupdate.sh tests/*.sh
+
+  update:
+    name: Update script tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      # On macOS this also checks the generated plist with plutil -lint
+      - run: bash tests/test_update.sh
 
   node:
     name: Node scripts
