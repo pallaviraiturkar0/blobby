@@ -153,6 +153,7 @@ flowchart LR
 - **Add a costume:** add a CSS rule for `[data-fest=yourkey]` in [`blob.html`](blobby/blob.html), then refer to it from `specialDays`.
 - **Change the colours:** each mode is a `radial-gradient` on `#blob`.
 - **Add things it says:** edit the `PETS` table in [`init.lua`](blobby/init.lua).
+- **Run the tests:** `lua tests/run.lua` (Lua 5.4) runs Blobby against a stubbed `hs` API with a fake clock. CI runs it on every PR.
 - **Regenerate the media:** `cd scripts && npm i && npx playwright install chromium && node render-media.mjs`
 
 ## ❓ Troubleshooting
