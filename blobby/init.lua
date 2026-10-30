@@ -45,11 +45,17 @@ local function say(text, ms) js(string.format("say(%q,%d)", text, ms or 5000)) e
 local function setState(s) state = s; js(string.format("setState(%q,%q)", s, dir or "")) end
 
 local function today() return os.date("%Y-%m-%d") end
+local tomatoDay
 local function loadTomatoes()
   local saved = hs.settings.get("blob.tomatoes")
-  tomatoes = (saved and saved.day == today()) and saved.n or 0
+  tomatoDay = today()
+  tomatoes = (saved and saved.day == tomatoDay) and saved.n or 0
 end
-local function saveTomatoes() hs.settings.set("blob.tomatoes", { day = today(), n = tomatoes }) end
+-- Start a fresh 🍅 count when the day changes while Hammerspoon keeps running
+local function rollTomatoes()
+  if tomatoDay ~= today() then loadTomatoes() end
+end
+local function saveTomatoes() hs.settings.set("blob.tomatoes", { day = tomatoDay, n = tomatoes }) end
 
 local function inCall()
   for _, d in ipairs(hs.audiodevice.allInputDevices()) do
@@ -119,6 +125,7 @@ local function stopFocus(done)
   focusEnd = nil
   js("setTimer('')")
   if done then
+    rollTomatoes()
     tomatoes = tomatoes + 1; saveTomatoes()
     lastStretch = os.time()
     hs.sound.getByName("Glass"):play()
@@ -169,8 +176,8 @@ local DATED = {
 }
 
 local function inRange(t, date, days)
-  local y, m, dd = date:match("(%d+)-(%d+)-(%d+)")
-  local start = os.time({ year = tonumber(y), month = tonumber(m), day = tonumber(dd), hour = 0 })
+  local yr, m, dd = date:match("(%d+)-(%d+)-(%d+)")
+  local start = os.time({ year = tonumber(yr), month = tonumber(m), day = tonumber(dd), hour = 0 })
   return t >= start and t < start + (days or 1) * 86400
 end
 
@@ -206,6 +213,7 @@ end
 
 local function brain()
   local now = os.time()
+  rollTomatoes()
   applyFestival(false)
   if awayUntil then
     local left = awayUntil - now
