@@ -157,19 +157,50 @@ local FIXED = {
   { "10-24", "10-31", "halloween", "🎃", "Happy Halloween! 🎃👻" },
   { "12-20", "12-26", "christmas", "🎄", "Merry Christmas! 🎄" },
 }
--- Lunar-calendar festivals move every year: "YYYY-MM-DD" start, number of days
+-- Lunar-calendar festivals move every year: "YYYY-MM-DD" start, number of days.
+-- Lunar New Year: 1st day of the 1st lunar month, 3 days. Holi: starts on Holika Dahan, 2 days.
+-- Easter: Western (Gregorian) Easter Sunday. Diwali: starts 2 days before Lakshmi Puja, 5 days.
 local DATED = {
   { "2026-11-06", 5, "diwali", "🪔", "Happy Diwali! 🪔✨" },
   { "2027-10-27", 5, "diwali", "🪔", "Happy Diwali! 🪔✨" },
   { "2027-02-06", 3, "lunarny", "🧧", "Happy Lunar New Year! 🧧" },
   { "2027-03-21", 2, "holi", "🎨", "Happy Holi! 🌈" },
   { "2027-03-28", 1, "easter", "🐣", "Happy Easter! 🐣" },
+  { "2028-01-26", 3, "lunarny", "🧧", "Happy Lunar New Year! 🧧" },
+  { "2028-03-10", 2, "holi", "🎨", "Happy Holi! 🌈" },
+  { "2028-04-16", 1, "easter", "🐣", "Happy Easter! 🐣" },
+  { "2028-10-15", 5, "diwali", "🪔", "Happy Diwali! 🪔✨" },
+  { "2029-02-13", 3, "lunarny", "🧧", "Happy Lunar New Year! 🧧" },
+  { "2029-02-28", 2, "holi", "🎨", "Happy Holi! 🌈" },
+  { "2029-04-01", 1, "easter", "🐣", "Happy Easter! 🐣" },
+  { "2029-11-03", 5, "diwali", "🪔", "Happy Diwali! 🪔✨" },
+  { "2030-02-03", 3, "lunarny", "🧧", "Happy Lunar New Year! 🧧" },
+  { "2030-03-19", 2, "holi", "🎨", "Happy Holi! 🌈" },
+  { "2030-04-21", 1, "easter", "🐣", "Happy Easter! 🐣" },
+  { "2030-10-24", 5, "diwali", "🪔", "Happy Diwali! 🪔✨" },
 }
 
 local function inRange(t, date, days)
   local y, m, dd = date:match("(%d+)-(%d+)-(%d+)")
   local start = os.time({ year = tonumber(y), month = tonumber(m), day = tonumber(dd), hour = 0 })
   return t >= start and t < start + (days or 1) * 86400
+end
+
+-- Log to the Hammerspoon console when a DATED festival has no current or future dates left
+local function warnStaleFestivals(now)
+  local hasFuture, keys = {}, {}
+  for _, f in ipairs(DATED) do
+    local key = f[3]
+    if hasFuture[key] == nil then hasFuture[key] = false; keys[#keys + 1] = key end
+    local yr, mo, dd = f[1]:match("(%d+)-(%d+)-(%d+)")
+    local start = os.time({ year = tonumber(yr), month = tonumber(mo), day = tonumber(dd), hour = 0 })
+    if start + f[2] * 86400 > now then hasFuture[key] = true end
+  end
+  for _, key in ipairs(keys) do
+    if not hasFuture[key] then
+      print(string.format("Blobby: no upcoming dates for '%s'. Add future years to DATED in blobby/init.lua", key))
+    end
+  end
 end
 
 local function festivalFor(t)
@@ -294,6 +325,7 @@ function M.start(opts)
     local hi = h < 12 and "Good morning" or (h < 17 and "Good afternoon" or "Good evening")
     say(hi .. "! I'm Blobby 💚 Click me to focus.", 5000)
   end)
+  warnStaleFestivals(os.time())
 end
 
 function M.onClick()
