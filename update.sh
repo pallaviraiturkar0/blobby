@@ -36,10 +36,16 @@ main() {
 
   local before after
   before="$(git rev-parse HEAD)"
-  if ! git pull --ff-only --quiet origin "$default"; then
-    log "✗ Couldn't fast-forward '$default' (no network, or local commits that aren't on GitHub)."
+  if ! git fetch --quiet origin "$default"; then
+    log "✗ Couldn't reach GitHub. Try again later."
     return 1
   fi
+  if [ -n "$(git rev-list -n 1 "origin/$default..HEAD")" ]; then
+    log "✗ '$default' has local commits that aren't on GitHub. Remove them (git reset --hard origin/$default) or keep them on another branch."
+    return 1
+  fi
+  # Equivalent to git pull --ff-only, using the commits fetched above
+  git merge --ff-only --quiet "origin/$default"
   after="$(git rev-parse HEAD)"
 
   if [ "$before" = "$after" ] && [ "$force" -eq 0 ] && installed_matches; then
@@ -76,12 +82,16 @@ reload_hammerspoon() {
   # Works when the config has hs.allowAppleScript(true); otherwise restart Hammerspoon to load the new files
   if osascript -e 'tell application "Hammerspoon" to execute lua code "hs.reload()"' >/dev/null 2>&1; then
     log "→ Reloaded Hammerspoon"
-  else
-    osascript -e 'tell application "Hammerspoon" to quit' >/dev/null 2>&1 || true
-    for _ in 1 2 3 4 5 6 7 8 9 10; do hammerspoon_running || break; sleep 0.5; done
-    open -a Hammerspoon
-    log "→ Restarted Hammerspoon"
+    return 0
   fi
+  osascript -e 'tell application "Hammerspoon" to quit' >/dev/null 2>&1 || true
+  for _ in 1 2 3 4 5 6 7 8 9 10; do hammerspoon_running || break; sleep 0.5; done
+  if hammerspoon_running; then
+    log "✗ Blobby was updated, but Hammerspoon didn't quit. Restart Hammerspoon (or choose Reload Config from the 🔨 menu) to load it."
+    return 1
+  fi
+  open -a Hammerspoon
+  log "→ Restarted Hammerspoon"
 }
 
 main "$@"

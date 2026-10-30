@@ -16,24 +16,28 @@ not() { ! "$@"; }
 called() { grep -q "$1" "$CALLS"; }
 installed_has() { grep -q "$1" "$DEST/blob.html"; }
 
-export HOME="$WORK/home" CALLS="$WORK/calls"
+export HOME="$WORK/home" CALLS="$WORK/calls" HS_QUIT="$WORK/hs_quit"
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
 mkdir -p "$HOME" "$WORK/bin"
 
-# Stubs record their arguments in $CALLS. STUB_HS_RUNNING / STUB_APPLESCRIPT control pgrep and osascript.
+# Stubs record their arguments in $CALLS. STUB_HS_RUNNING=0 means Hammerspoon isn't running,
+# STUB_APPLESCRIPT=0 means "execute lua code" is disabled, STUB_QUIT_IGNORED=1 means Hammerspoon won't quit.
 for cmd in brew open launchctl; do
   # shellcheck disable=SC2016 # $* and $CALLS expand when the stub runs
   printf '#!/usr/bin/env bash\necho "%s $*" >> "$CALLS"\n' "$cmd" > "$WORK/bin/$cmd"
 done
 cat > "$WORK/bin/pgrep" <<'STUB'
 #!/usr/bin/env bash
-[ "${STUB_HS_RUNNING:-1}" = 1 ]
+[ "${STUB_HS_RUNNING:-1}" = 1 ] && [ ! -e "$HS_QUIT" ]
 STUB
 cat > "$WORK/bin/osascript" <<'STUB'
 #!/usr/bin/env bash
 echo "osascript $*" >> "$CALLS"
-case "$*" in *"execute lua code"*) [ "${STUB_APPLESCRIPT:-1}" = 1 ] ;; esac
+case "$*" in
+  *"execute lua code"*) [ "${STUB_APPLESCRIPT:-1}" = 1 ] ;;
+  *"to quit"*) [ "${STUB_QUIT_IGNORED:-0}" = 1 ] || touch "$HS_QUIT" ;;
+esac
 STUB
 chmod +x "$WORK/bin/"*
 export PATH="$WORK/bin:$PATH"
@@ -53,7 +57,7 @@ push_change() {
   git -C "$WORK/seed" commit -qam "$1"
   git -C "$WORK/seed" push -q "$WORK/origin.git" main
 }
-run_update() { : > "$CALLS"; "$CLONE/update.sh" "$@" > "$WORK/out" 2>&1; }
+run_update() { : > "$CALLS"; rm -f "$HS_QUIT"; "$CLONE/update.sh" "$@" > "$WORK/out" 2>&1; }
 
 "$CLONE/install.sh" > /dev/null
 check "install.sh copies Blobby" cmp -s "$CLONE/blobby/blob.html" "$DEST/blob.html"
@@ -88,6 +92,13 @@ unset STUB_APPLESCRIPT
 check "restart quits Hammerspoon" called "to quit"
 check "restart reopens Hammerspoon" called "^open -a Hammerspoon"
 
+push_change "update 2b"
+export STUB_APPLESCRIPT=0 STUB_QUIT_IGNORED=1
+check "fails when Hammerspoon won't quit" not run_update
+unset STUB_APPLESCRIPT STUB_QUIT_IGNORED
+check "tells you to restart Hammerspoon" grep -q "Restart Hammerspoon" "$WORK/out"
+check "doesn't claim it restarted" not called "^open "
+
 push_change "update three"
 export STUB_HS_RUNNING=0
 check "updates files when Hammerspoon isn't running" run_update
@@ -114,6 +125,14 @@ check "leaves the install untouched when diverged" not installed_has "update fou
 git -C "$CLONE" reset -q --hard origin/main
 check "updates once the clone is clean again" run_update
 check "installed files match after update four" cmp -s "$CLONE/blobby/blob.html" "$DEST/blob.html"
+
+echo "<!-- unpushed -->" >> "$CLONE/blobby/blob.html"
+git -C "$CLONE" commit -qam "unpushed"
+check "refuses to install unpushed local commits" not run_update
+check "explains the unpushed commits" grep -q "local commits" "$WORK/out"
+check "doesn't install the unpushed commit" not installed_has "unpushed"
+git -C "$CLONE" reset -q --hard origin/main
+check "updates after dropping the unpushed commit" run_update
 
 # install-autoupdate.sh
 PLIST="$HOME/Library/LaunchAgents/com.github.pallaviraiturkar0.blobby.update.plist"
@@ -142,9 +161,10 @@ check "--uninstall removes the plist" test ! -e "$PLIST"
 check "--uninstall unloads it with launchctl" called "^launchctl bootout gui/$(id -u)/com.github.pallaviraiturkar0.blobby.update"
 
 # Paths with XML special characters are escaped
-ODD="$WORK/a & <b>"
+ODD="$WORK/a & <b> --x"
 git clone -q "$WORK/origin.git" "$ODD"
-check "handles paths with & and <>" autoupdate "$ODD"
+check "handles paths with &, <> and --" autoupdate "$ODD"
+check "generated plist is well-formed XML" python3 -c 'import sys, xml.dom.minidom; xml.dom.minidom.parse(sys.argv[1])' "$PLIST"
 check "escaped path round-trips" test "$(read_plist program)" = "$ODD/update.sh"
 
 echo

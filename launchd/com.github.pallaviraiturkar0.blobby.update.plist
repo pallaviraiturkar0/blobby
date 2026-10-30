@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Template used by install-autoupdate.sh, which fills in __BLOBBY_DIR__ and __LOG_FILE__. -->
-<!-- Runs update.sh when you log in and every day at __HOUR__:00. -->
+<!-- Template used by install-autoupdate.sh, which fills in the clone path, log path and hour. -->
+<!-- Runs update.sh when you log in and once a day. -->
 <plist version="1.0">
 <dict>
   <key>Label</key>
