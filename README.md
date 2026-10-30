@@ -117,7 +117,7 @@ blobby.start({
 | 4th Thursday of Nov | 🦃 |
 | Dec 20 – 26 | 🎄 Santa hat |
 
-Holidays that follow the lunar calendar, plus Easter, fall on different dates each year. Their dates live in the `DATED` table in [`blobby/init.lua`](blobby/init.lua), and pull requests that add future years are welcome.
+Holidays that follow the lunar calendar, plus Easter, fall on different dates each year. Their dates live in the `DATED` table in [`blobby/init.lua`](blobby/init.lua), which currently runs through 2030. When a festival has no upcoming dates left, Blobby logs a warning in the Hammerspoon console. Pull requests that add future years are welcome.
 </details>
 
 ## 🧠 How it works
