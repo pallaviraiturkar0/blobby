@@ -174,8 +174,8 @@ local DATED = {
 }
 
 local function inRange(t, date, days)
-  local y, m, dd = date:match("(%d+)-(%d+)-(%d+)")
-  local start = os.time({ year = tonumber(y), month = tonumber(m), day = tonumber(dd), hour = 0 })
+  local yr, m, dd = date:match("(%d+)-(%d+)-(%d+)")
+  local start = os.time({ year = tonumber(yr), month = tonumber(m), day = tonumber(dd), hour = 0 })
   return t >= start and t < start + (days or 1) * 86400
 end
 
