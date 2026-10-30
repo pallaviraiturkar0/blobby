@@ -19,7 +19,7 @@ jobs:
           luaVersion: "5.4"
       - uses: leafo/gh-actions-luarocks@v5
       - run: luarocks install luacheck
-      - run: luacheck .
+      - run: luacheck blobby examples
 
   shellcheck:
     name: Shell lint
