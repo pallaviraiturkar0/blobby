@@ -257,6 +257,52 @@ local function brain()
   if state == "idle" and math.random() < 0.08 then pickTarget(); setState("walk") end
 end
 
+-- Drop malformed birthday/specialDays with a Hammerspoon console warning instead of crashing brain() later
+local DAYS_IN_MONTH = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
+
+-- Without a year (birthdays), Feb 29 is allowed
+local function validMonthDay(mo, dd, yr)
+  mo, dd, yr = tonumber(mo or ""), tonumber(dd or ""), tonumber(yr or "")
+  if mo == nil or dd == nil or mo < 1 or mo > 12 or dd < 1 then return false end
+  local max = DAYS_IN_MONTH[mo]
+  if mo == 2 and yr and not (yr % 4 == 0 and (yr % 100 ~= 0 or yr % 400 == 0)) then max = 28 end
+  return dd <= max
+end
+
+local function validSpecialDay(d)
+  if type(d) ~= "table" or type(d.date) ~= "string" then return false end
+  local yr, mo, dd = d.date:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+  if not yr or not validMonthDay(mo, dd, yr) then return false end
+  if d.days ~= nil and not (type(d.days) == "number" and d.days >= 1) then return false end
+  for _, k in ipairs({ "costume", "prop", "greeting" }) do
+    if d[k] ~= nil and type(d[k]) ~= "string" then return false end
+  end
+  return true
+end
+
+local function validateConfig()
+  local b = config.birthday
+  if b ~= nil and not (type(b) == "string" and validMonthDay(b:match("^(%d%d)%-(%d%d)$"))) then
+    print(string.format('Blobby: ignoring birthday %s (expected "MM-DD", e.g. "07-14")', tostring(b)))
+    config.birthday = nil
+  end
+  local list = config.specialDays
+  if type(list) ~= "table" then
+    print('Blobby: ignoring specialDays (expected a list like { { date = "YYYY-MM-DD", days = 1 } })')
+    config.specialDays = {}
+    return
+  end
+  local valid = {}
+  for i, d in ipairs(list) do
+    if validSpecialDay(d) then
+      valid[#valid + 1] = d
+    else
+      print(string.format('Blobby: ignoring specialDays[%d] (expected { date = "YYYY-MM-DD", days = 1, ... })', i))
+    end
+  end
+  config.specialDays = valid
+end
+
 local PETS = { "hehe 💚", "*happy wiggle*", "you're doing great!", "boop!", "🍅 x%d today", "click me to focus!" }
 
 function M.start(opts)
@@ -264,6 +310,7 @@ function M.start(opts)
   STRETCH_MIN, WATER_MIN = config.stretchMinutes, config.waterMinutes
   WANDER = config.wander
   loadTomatoes()
+  validateConfig()
   local f = screen():frame()
   local saved = hs.settings.get("blob.pos")
   x = saved and saved.x or (f.x + f.w / 2 - W / 2)
