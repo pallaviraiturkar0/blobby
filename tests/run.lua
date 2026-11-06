@@ -169,17 +169,44 @@ test("invalid numeric options fall back to defaults with a warning", function()
     local env = Stub.new()
     env.start({ [k] = v })
     eq(count(env.prints, "ignoring " .. k), 1, k .. " warning")
-    env.advance(2 * 3600)
-    local ok, err = pcall(env.tick, 2)
-    eq(ok, true, k .. " crashed: " .. tostring(err))
     env.restore()
   end
+
+  -- Each path below reads the validated value, so they also catch it being cached before validation
   local env = Stub.new()
+  env.start({ stretchMinutes = "abc", waterMinutes = 1000 })
+  env.advance(59 * 60); env.tick()
+  eq(count(env.said(), "Stretch break"), 0, "no stretch before 60 min")
+  env.advance(60); env.tick()
+  eq(count(env.said(), "Stretch break"), 1, "stretch at the default 60 min")
+  env.restore()
+
+  env = Stub.new()
+  env.start({ waterMinutes = -1, stretchMinutes = 1000 })
+  env.advance(89 * 60); env.tick()
+  eq(count(env.said(), "Sip some water"), 0, "no water before 90 min")
+  env.advance(60); env.tick()
+  eq(count(env.said(), "Sip some water"), 1, "water at the default 90 min")
+  env.restore()
+
+  env = Stub.new()
   env.start({ focusMinutes = 0 })
   env.M.onClick()
   env.advance(24 * 60)
   env.tick()
   eq(env.lastSaid(), "Let's focus! 25 min 💪", "focus uses the default length")
+  env.restore()
+
+  -- Force a walk and record the range Blobby picks from: home is x = 600, so the default 300 px gives 300..900
+  env = Stub.new()
+  env.start({ wander = "far" })
+  local realRandom, lo, hi = math.random, nil, nil
+  math.random = function(a, b) if a then lo, hi = a, b; return a end return 0 end
+  local ok, err = pcall(env.tick)
+  math.random = realRandom
+  eq(ok, true, "wander crashed: " .. tostring(err))
+  eq(lo, 300, "wander low bound")
+  eq(hi, 900, "wander high bound")
   env.restore()
 end)
 
