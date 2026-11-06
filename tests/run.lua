@@ -166,6 +166,73 @@ test("valid birthdays, including 02-29, still match", function()
   env.restore()
 end)
 
+-- Unusable numeric options fall back to their defaults instead of crashing brain() or ending focus instantly
+test("invalid numeric options fall back to defaults with a warning", function()
+  local bad = { stretchMinutes = "abc", waterMinutes = -1, focusMinutes = 0, wander = "far" }
+  for k, v in pairs(bad) do
+    local env = Stub.new()
+    env.start({ [k] = v })
+    eq(count(env.prints, "ignoring " .. k), 1, k .. " warning")
+    env.restore()
+  end
+
+  -- Each path below reads the validated value, so they also catch it being cached before validation
+  local env = Stub.new()
+  env.start({ stretchMinutes = "abc", waterMinutes = 1000 })
+  env.advance(59 * 60); env.tick()
+  eq(count(env.said(), "Stretch break"), 0, "no stretch before 60 min")
+  env.advance(60); env.tick()
+  eq(count(env.said(), "Stretch break"), 1, "stretch at the default 60 min")
+  env.restore()
+
+  env = Stub.new()
+  env.start({ waterMinutes = -1, stretchMinutes = 1000 })
+  env.advance(89 * 60); env.tick()
+  eq(count(env.said(), "Sip some water"), 0, "no water before 90 min")
+  env.advance(60); env.tick()
+  eq(count(env.said(), "Sip some water"), 1, "water at the default 90 min")
+  env.restore()
+
+  env = Stub.new()
+  env.start({ focusMinutes = 0 })
+  env.M.onClick()
+  env.advance(24 * 60)
+  env.tick()
+  eq(env.lastSaid(), "Let's focus! 25 min 💪", "focus uses the default length")
+  env.restore()
+
+  -- Force a walk and record the range Blobby picks from: home is x = 600, so the default 300 px gives 300..900
+  env = Stub.new()
+  env.start({ wander = "far" })
+  local realRandom, lo, hi = math.random, nil, nil
+  math.random = function(a, b) if a then lo, hi = a, b; return a end return 0 end
+  local ok, err = pcall(env.tick)
+  math.random = realRandom
+  eq(ok, true, "wander crashed: " .. tostring(err))
+  eq(lo, 300, "wander low bound")
+  eq(hi, 900, "wander high bound")
+  env.restore()
+end)
+
+test("valid numeric options are kept, including wander = 0", function()
+  local env = Stub.new()
+  env.start({ focusMinutes = 50, stretchMinutes = 30, waterMinutes = 45.5, wander = 0 })
+  eq(count(env.prints, "ignoring"), 0, "warnings")
+  env.M.onClick()
+  eq(env.lastSaid(), "Let's focus! 50 min 💪", "focus length")
+  env.restore()
+
+  -- 0.33 min is 19.8 s; the countdown must not choke on the fraction
+  env = Stub.new()
+  env.start({ focusMinutes = 0.33 })
+  env.M.onClick()
+  env.advance(5)
+  local ok, err = pcall(env.tick)
+  eq(ok, true, "fractional focus crashed: " .. tostring(err))
+  eq(env.js[#env.js], "setTimer('0:15')", "countdown")
+  env.restore()
+end)
+
 for _, t in ipairs(tests) do
   local ok, err = pcall(t.fn)
   Stub.reset()

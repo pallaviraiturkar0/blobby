@@ -18,6 +18,9 @@ local config = {
   hotkeyToggle   = "B",
 }
 
+-- Numeric options fall back to these (with a console warning) when they aren't usable numbers
+local NUMERIC_DEFAULTS = { focusMinutes = 25, stretchMinutes = 60, waterMinutes = 90, wander = 300 }
+
 local STRETCH_MIN, WATER_MIN
 local W, H = 240, 190
 local wv, moveTimer, brainTimer
@@ -115,7 +118,8 @@ end
 -- mins defaults to config.focusMinutes so a one-off 2x session doesn't change the click length
 local function startFocus(mins)
   mins = mins or config.focusMinutes
-  focusEnd = os.time() + mins * 60
+  -- Whole seconds, so the %d countdown in brain() works with fractional minutes
+  focusEnd = os.time() + math.floor(mins * 60 + 0.5)
   targetX = nil; dir = nil
   setState("focus")
   say("Let's focus! " .. mins .. " min 💪", 3000)
@@ -312,6 +316,16 @@ local function validSpecialDay(d)
 end
 
 local function validateConfig()
+  for k, default in pairs(NUMERIC_DEFAULTS) do
+    local v = config[k]
+    -- wander may be 0 (Blobby stays put); the timers need a positive length
+    local ok = type(v) == "number" and v == v and v ~= math.huge and (v > 0 or (k == "wander" and v == 0))
+    if not ok then
+      print(string.format("Blobby: ignoring %s %s (expected a %s number), using %d",
+        k, tostring(v), k == "wander" and "non-negative" or "positive", default))
+      config[k] = default
+    end
+  end
   local b = config.birthday
   if b ~= nil and not (type(b) == "string" and validMonthDay(b:match("^(%d%d)%-(%d%d)$"))) then
     print(string.format('Blobby: ignoring birthday %s (expected "MM-DD", e.g. "07-14")', tostring(b)))
@@ -338,10 +352,10 @@ local PETS = { "hehe 💚", "*happy wiggle*", "you're doing great!", "boop!", "�
 
 function M.start(opts)
   for k, v in pairs(opts or {}) do config[k] = v end
+  validateConfig()
   STRETCH_MIN, WATER_MIN = config.stretchMinutes, config.waterMinutes
   WANDER = config.wander
   loadTomatoes()
-  validateConfig()
   local f = screen():frame()
   local saved = hs.settings.get("blob.pos")
   x = saved and saved.x or (f.x + f.w / 2 - W / 2)

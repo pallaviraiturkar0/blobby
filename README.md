@@ -137,6 +137,8 @@ blobby.start({
 })
 ```
 
+Blobby checks `focusMinutes`, `stretchMinutes`, `waterMinutes`, `wander`, `birthday` and `specialDays` when it starts. If one has the wrong type or format, such as `focusMinutes = 0` or `birthday = "7-14"`, Blobby ignores it, uses the default and prints a warning in the Hammerspoon console. Invalid `specialDays` entries are skipped one at a time.
+
 `specialDays` is for one-off days like product launches, conferences or anniversaries. Built-in costumes you can reuse: `launch`, `birthday`, `newyear`, `halloween`, `christmas`, `diwali`, `holi`, `stpatricks`.
 
 <details>
