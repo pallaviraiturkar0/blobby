@@ -162,6 +162,36 @@ test("valid birthdays, including 02-29, still match", function()
   env.restore()
 end)
 
+-- Unusable numeric options fall back to their defaults instead of crashing brain() or ending focus instantly
+test("invalid numeric options fall back to defaults with a warning", function()
+  local bad = { stretchMinutes = "abc", waterMinutes = -1, focusMinutes = 0, wander = "far" }
+  for k, v in pairs(bad) do
+    local env = Stub.new()
+    env.start({ [k] = v })
+    eq(count(env.prints, "ignoring " .. k), 1, k .. " warning")
+    env.advance(2 * 3600)
+    local ok, err = pcall(env.tick, 2)
+    eq(ok, true, k .. " crashed: " .. tostring(err))
+    env.restore()
+  end
+  local env = Stub.new()
+  env.start({ focusMinutes = 0 })
+  env.M.onClick()
+  env.advance(24 * 60)
+  env.tick()
+  eq(env.lastSaid(), "Let's focus! 25 min 💪", "focus uses the default length")
+  env.restore()
+end)
+
+test("valid numeric options are kept, including wander = 0", function()
+  local env = Stub.new()
+  env.start({ focusMinutes = 50, stretchMinutes = 30, waterMinutes = 45.5, wander = 0 })
+  eq(count(env.prints, "ignoring"), 0, "warnings")
+  env.M.onClick()
+  eq(env.lastSaid(), "Let's focus! 50 min 💪", "focus length")
+  env.restore()
+end)
+
 for _, t in ipairs(tests) do
   local ok, err = pcall(t.fn)
   Stub.reset()
