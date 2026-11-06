@@ -118,7 +118,8 @@ end
 -- mins defaults to config.focusMinutes so a one-off 2x session doesn't change the click length
 local function startFocus(mins)
   mins = mins or config.focusMinutes
-  focusEnd = os.time() + mins * 60
+  -- Whole seconds, so the %d countdown in brain() works with fractional minutes
+  focusEnd = os.time() + math.floor(mins * 60 + 0.5)
   targetX = nil; dir = nil
   setState("focus")
   say("Let's focus! " .. mins .. " min 💪", 3000)

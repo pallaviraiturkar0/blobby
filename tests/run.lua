@@ -221,6 +221,16 @@ test("valid numeric options are kept, including wander = 0", function()
   env.M.onClick()
   eq(env.lastSaid(), "Let's focus! 50 min 💪", "focus length")
   env.restore()
+
+  -- 0.33 min is 19.8 s; the countdown must not choke on the fraction
+  env = Stub.new()
+  env.start({ focusMinutes = 0.33 })
+  env.M.onClick()
+  env.advance(5)
+  local ok, err = pcall(env.tick)
+  eq(ok, true, "fractional focus crashed: " .. tostring(err))
+  eq(env.js[#env.js], "setTimer('0:15')", "countdown")
+  env.restore()
 end)
 
 for _, t in ipairs(tests) do
