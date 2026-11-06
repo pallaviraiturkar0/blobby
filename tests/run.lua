@@ -1,4 +1,8 @@
 -- Run from the repository root: lua tests/run.lua
+if (tonumber(_VERSION:match("%d+%.%d+")) or 0) < 5.4 then
+  io.stderr:write(string.format("tests/run.lua needs Lua 5.4 (Hammerspoon's version), but this is %s. Try: lua5.4 tests/run.lua\n", _VERSION))
+  os.exit(1)
+end
 package.path = "./tests/?.lua;" .. package.path
 local Stub = require("hs_stub")
 
