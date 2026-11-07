@@ -72,7 +72,18 @@ function Stub.new(opts)
       usercontent = { new = function() return chain({ setCallback = function(self) return self end }) end },
     },
     drawing = { windowLevels = { floating = 3 }, windowBehaviors = { canJoinAllSpaces = 1, stationary = 16 } },
-    hotkey = { bind = function() return chain({}) end },
+    -- Like hs.hotkey.bind: throws on an unknown key name, otherwise records the binding
+    hotkey = {
+      bind = function(mods, key)
+        local name = type(key) == "string" and key:lower()
+        if type(key) ~= "number" and not (name and (name:match("^[%a%d]$") or name:match("^f%d%d?$") or name == "space")) then
+          error("Invalid key: " .. tostring(key))
+        end
+        if env.refuseHotkey and env.refuseHotkey(mods, key) then return nil end
+        env.hotkey = { mods = mods, key = key }
+        return chain({})
+      end,
+    },
     timer = {
       doEvery = function(interval, fn) return timer(fn, interval) end,
       doAfter = function(_, fn) return timer(fn, nil) end,

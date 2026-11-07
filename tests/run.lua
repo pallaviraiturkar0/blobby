@@ -233,6 +233,65 @@ test("valid numeric options are kept, including wander = 0", function()
   env.restore()
 end)
 
+-- An unknown hotkey key made hs.hotkey.bind throw and stopped start() before any timers ran
+test("invalid hotkey options fall back to ⌃⌥⌘B with a warning", function()
+  local env = Stub.new()
+  local ok, err = pcall(env.start, { hotkeyToggle = "NotAKey" })
+  eq(ok, true, "start crashed: " .. tostring(err))
+  eq(count(env.prints, "ignoring hotkeyToggle"), 1, "key warning")
+  eq(env.hotkey.key, "B", "default key")
+  eq(table.concat(env.hotkey.mods, "+"), "ctrl+alt+cmd", "default mods with default key")
+  eq(env.brain ~= nil, true, "brain timer started")
+  env.restore()
+
+  for i, mods in ipairs({ { "ctrl", "cntrl" }, "B", 42, { cmd = true } }) do
+    env = Stub.new()
+    env.start({ hotkeyMods = mods, hotkeyToggle = "K" })
+    eq(count(env.prints, "ignoring hotkeyMods"), 1, "case " .. i .. " warning")
+    eq(table.concat(env.hotkey.mods, "+"), "ctrl+alt+cmd", "case " .. i .. " mods")
+    eq(env.hotkey.key, "K", "case " .. i .. " key kept")
+    env.restore()
+  end
+end)
+
+test("a shortcut macOS refuses falls back to ⌃⌥⌘B", function()
+  local env = Stub.new()
+  env.refuseHotkey = function(_, key) return key == "K" end
+  env.start({ hotkeyToggle = "K" })
+  eq(count(env.prints, "ignoring hotkeyToggle K"), 1, "warning")
+  eq(env.hotkey.key, "B", "default key")
+  env.restore()
+
+  env = Stub.new()
+  env.refuseHotkey = function() return true end
+  local ok, err = pcall(env.start)
+  eq(ok, true, "start crashed: " .. tostring(err))
+  eq(count(env.prints, "ignoring hotkeyToggle B"), 1, "warning for the default")
+  eq(env.M.hotkey, nil, "no hotkey")
+  eq(env.brain ~= nil, true, "brain timer started")
+  env.restore()
+
+  -- A throwing bind of the default shortcut must not leave the error message in M.hotkey
+  env = Stub.new()
+  env.refuseHotkey = function() error("boom") end
+  env.start()
+  eq(env.M.hotkey, nil, "no hotkey after a throw")
+  ok, err = pcall(env.M.stop)
+  eq(ok, true, "stop crashed: " .. tostring(err))
+  env.restore()
+end)
+
+test("valid hotkey options are kept", function()
+  for _, mods in ipairs({ { "cmd", "Shift" }, "⌘⇧", {} }) do
+    local env = Stub.new()
+    env.start({ hotkeyMods = mods, hotkeyToggle = "f13" })
+    eq(count(env.prints, "ignoring"), 0, "warnings")
+    eq(env.hotkey.mods, mods, "mods")
+    eq(env.hotkey.key, "f13", "key")
+    env.restore()
+  end
+end)
+
 for _, t in ipairs(tests) do
   local ok, err = pcall(t.fn)
   Stub.reset()

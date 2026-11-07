@@ -20,6 +20,7 @@ local config = {
 
 -- Numeric options fall back to these (with a console warning) when they aren't usable numbers
 local NUMERIC_DEFAULTS = { focusMinutes = 25, stretchMinutes = 60, waterMinutes = 90, wander = 300 }
+local HOTKEY_DEFAULT_MODS, HOTKEY_DEFAULT_KEY = { "ctrl", "alt", "cmd" }, "B"
 
 local STRETCH_MIN, WATER_MIN
 local W, H = 240, 190
@@ -315,6 +316,25 @@ local function validSpecialDay(d)
   return true
 end
 
+-- hs.hotkey matches modifier names as substrings and silently drops anything else
+local MOD_NAMES = { "cmd", "command", "⌘", "ctrl", "control", "⌃", "alt", "option", "⌥", "shift", "⇧" }
+local function knownMod(s)
+  if type(s) ~= "string" then return false end
+  s = s:lower()
+  for _, n in ipairs(MOD_NAMES) do if s:find(n, 1, true) then return true end end
+  return false
+end
+
+local function validMods(mods)
+  if type(mods) == "string" then return knownMod(mods) end
+  if type(mods) ~= "table" then return false end
+  local n = 0
+  for _ in pairs(mods) do n = n + 1 end
+  if n ~= #mods then return false end
+  for _, m in ipairs(mods) do if not knownMod(m) then return false end end
+  return true
+end
+
 local function validateConfig()
   for k, default in pairs(NUMERIC_DEFAULTS) do
     local v = config[k]
@@ -325,6 +345,11 @@ local function validateConfig()
         k, tostring(v), k == "wander" and "non-negative" or "positive", default))
       config[k] = default
     end
+  end
+  if not validMods(config.hotkeyMods) then
+    print(string.format('Blobby: ignoring hotkeyMods %s (expected a list like { "ctrl", "alt", "cmd" }), using the default',
+      type(config.hotkeyMods) == "table" and "list" or tostring(config.hotkeyMods)))
+    config.hotkeyMods = HOTKEY_DEFAULT_MODS
   end
   local b = config.birthday
   if b ~= nil and not (type(b) == "string" and validMonthDay(b:match("^(%d%d)%-(%d%d)$"))) then
@@ -384,7 +409,22 @@ function M.start(opts)
     :url("file://" .. HERE .. "blob.html")
     :show()
 
-  M.hotkey = hs.hotkey.bind(config.hotkeyMods, config.hotkeyToggle, M.toggle)
+  -- hs.hotkey.bind throws on an unknown key name (which would stop start() before the timers run)
+  -- and returns nil when macOS refuses the shortcut
+  local ok, hotkey = pcall(hs.hotkey.bind, config.hotkeyMods, config.hotkeyToggle, M.toggle)
+  if not ok then hotkey = nil end
+  if not hotkey then
+    local mods = config.hotkeyMods
+    local isDefault = type(mods) == "table" and table.concat(mods, "+") == table.concat(HOTKEY_DEFAULT_MODS, "+")
+      and config.hotkeyToggle == HOTKEY_DEFAULT_KEY
+    print(string.format('Blobby: ignoring hotkeyToggle %s (unknown key name or the shortcut is unavailable)%s',
+      tostring(config.hotkeyToggle), isDefault and "" or ", using the default ⌃⌥⌘B"))
+    if not isDefault then
+      ok, hotkey = pcall(hs.hotkey.bind, HOTKEY_DEFAULT_MODS, HOTKEY_DEFAULT_KEY, M.toggle)
+      if not ok then hotkey = nil end
+    end
+  end
+  M.hotkey = hotkey
   M.screenWatcher = hs.screen.watcher.new(M.reposition):start()
 
   moveTimer = hs.timer.doEvery(0.03, step)
