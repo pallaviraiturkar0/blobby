@@ -79,6 +79,7 @@ function Stub.new(opts)
         if type(key) ~= "number" and not (name and (name:match("^[%a%d]$") or name:match("^f%d%d?$") or name == "space")) then
           error("Invalid key: " .. tostring(key))
         end
+        if env.refuseHotkey and env.refuseHotkey(mods, key) then return nil end
         env.hotkey = { mods = mods, key = key }
         return chain({})
       end,

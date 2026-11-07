@@ -254,6 +254,24 @@ test("invalid hotkey options fall back to ⌃⌥⌘B with a warning", function()
   end
 end)
 
+test("a shortcut macOS refuses falls back to ⌃⌥⌘B", function()
+  local env = Stub.new()
+  env.refuseHotkey = function(_, key) return key == "K" end
+  env.start({ hotkeyToggle = "K" })
+  eq(count(env.prints, "ignoring hotkeyToggle K"), 1, "warning")
+  eq(env.hotkey.key, "B", "default key")
+  env.restore()
+
+  env = Stub.new()
+  env.refuseHotkey = function() return true end
+  local ok, err = pcall(env.start)
+  eq(ok, true, "start crashed: " .. tostring(err))
+  eq(count(env.prints, "ignoring hotkeyToggle B"), 1, "warning for the default")
+  eq(env.M.hotkey, nil, "no hotkey")
+  eq(env.brain ~= nil, true, "brain timer started")
+  env.restore()
+end)
+
 test("valid hotkey options are kept", function()
   for _, mods in ipairs({ { "cmd", "Shift" }, "⌘⇧", {} }) do
     local env = Stub.new()

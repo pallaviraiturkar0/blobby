@@ -409,12 +409,19 @@ function M.start(opts)
     :url("file://" .. HERE .. "blob.html")
     :show()
 
-  -- An unknown key name makes hs.hotkey.bind throw, which would stop start() before the timers run
+  -- hs.hotkey.bind throws on an unknown key name (which would stop start() before the timers run)
+  -- and returns nil when macOS refuses the shortcut
   local ok, hotkey = pcall(hs.hotkey.bind, config.hotkeyMods, config.hotkeyToggle, M.toggle)
-  if not ok then
-    print(string.format('Blobby: ignoring hotkeyToggle %s (expected a key name like "B"), using the default ⌃⌥⌘B',
-      tostring(config.hotkeyToggle)))
-    hotkey = hs.hotkey.bind(HOTKEY_DEFAULT_MODS, HOTKEY_DEFAULT_KEY, M.toggle)
+  if not (ok and hotkey) then
+    local mods = config.hotkeyMods
+    local isDefault = type(mods) == "table" and table.concat(mods, "+") == table.concat(HOTKEY_DEFAULT_MODS, "+")
+      and config.hotkeyToggle == HOTKEY_DEFAULT_KEY
+    print(string.format('Blobby: ignoring hotkeyToggle %s (unknown key name or the shortcut is unavailable)%s',
+      tostring(config.hotkeyToggle), isDefault and "" or ", using the default ⌃⌥⌘B"))
+    if not isDefault then
+      ok, hotkey = pcall(hs.hotkey.bind, HOTKEY_DEFAULT_MODS, HOTKEY_DEFAULT_KEY, M.toggle)
+      if not ok then hotkey = nil end
+    end
   end
   M.hotkey = hotkey
   M.screenWatcher = hs.screen.watcher.new(M.reposition):start()
