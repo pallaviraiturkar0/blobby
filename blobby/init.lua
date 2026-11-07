@@ -412,7 +412,8 @@ function M.start(opts)
   -- hs.hotkey.bind throws on an unknown key name (which would stop start() before the timers run)
   -- and returns nil when macOS refuses the shortcut
   local ok, hotkey = pcall(hs.hotkey.bind, config.hotkeyMods, config.hotkeyToggle, M.toggle)
-  if not (ok and hotkey) then
+  if not ok then hotkey = nil end
+  if not hotkey then
     local mods = config.hotkeyMods
     local isDefault = type(mods) == "table" and table.concat(mods, "+") == table.concat(HOTKEY_DEFAULT_MODS, "+")
       and config.hotkeyToggle == HOTKEY_DEFAULT_KEY

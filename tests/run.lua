@@ -270,6 +270,15 @@ test("a shortcut macOS refuses falls back to ⌃⌥⌘B", function()
   eq(env.M.hotkey, nil, "no hotkey")
   eq(env.brain ~= nil, true, "brain timer started")
   env.restore()
+
+  -- A throwing bind of the default shortcut must not leave the error message in M.hotkey
+  env = Stub.new()
+  env.refuseHotkey = function() error("boom") end
+  env.start()
+  eq(env.M.hotkey, nil, "no hotkey after a throw")
+  ok, err = pcall(env.M.stop)
+  eq(ok, true, "stop crashed: " .. tostring(err))
+  env.restore()
 end)
 
 test("valid hotkey options are kept", function()
