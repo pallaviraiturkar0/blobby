@@ -10,7 +10,7 @@ Blobby walks along the bottom of your screen. Click it to start a focus timer. I
 
 [![macOS](https://img.shields.io/badge/macOS-only-black?logo=apple)](https://www.hammerspoon.org)
 [![Hammerspoon](https://img.shields.io/badge/powered%20by-Hammerspoon-f97316)](https://www.hammerspoon.org)
-[![Lua](https://img.shields.io/badge/Lua-~350%20lines-2C2D72?logo=lua)](blobby/init.lua)
+[![Lua](https://img.shields.io/badge/Lua-~500%20lines-2C2D72?logo=lua)](blobby/init.lua)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e)](LICENSE)
 
 <img src="docs/media/demo.gif" alt="Blobby demo: wandering, focus mode, calls, lunch, reminders and costumes" width="800" />
@@ -162,7 +162,7 @@ Holidays that follow the lunar calendar, plus Easter, fall on different dates ea
 
 ## 🧠 How it works
 
-Blobby is about 350 lines of Lua and 100 lines of HTML and CSS. It has no build step and no dependencies apart from Hammerspoon.
+Blobby is about 500 lines of Lua and 100 lines of HTML and CSS. It has no build step and no dependencies apart from Hammerspoon.
 
 ```mermaid
 flowchart LR
