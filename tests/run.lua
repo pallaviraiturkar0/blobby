@@ -305,6 +305,8 @@ test("the menu shows the shortcut that is actually bound", function()
     { { hotkeyMods = { "cmd", "Shift" }, hotkeyToggle = "k" }, "Hide Blobby (⇧⌘K)" },
     { { hotkeyMods = "⌘⌥", hotkeyToggle = "f13" }, "Hide Blobby (⌥⌘F13)" },
     { { hotkeyToggle = "NotAKey" }, "Hide Blobby (⌃⌥⌘B)" },
+    { { hotkeyMods = { "cmd" }, hotkeyToggle = 105 }, "Hide Blobby (⌘F13)" },
+    { { hotkeyMods = { "cmd" }, hotkeyToggle = 999 }, "Hide Blobby (⌘Keycode 999)" },
   }
   for i, c in ipairs(cases) do
     local env = Stub.new()

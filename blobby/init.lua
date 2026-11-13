@@ -326,12 +326,13 @@ local function knownMod(s)
   return false
 end
 
--- Shortcut label for the menu in macOS order, e.g. ⌃⌥⌘B. nil for raw keycodes.
+-- Shortcut label for the menu in macOS order, e.g. ⌃⌥⌘B. Raw keycodes are named through hs.keycodes.map.
 local MOD_SYMBOLS = {
   { "⌃", { "ctrl", "control", "⌃" } }, { "⌥", { "alt", "option", "⌥" } },
   { "⇧", { "shift", "⇧" } }, { "⌘", { "cmd", "command", "⌘" } },
 }
 local function shortcutLabel(mods, key)
+  if type(key) == "number" then key = hs.keycodes.map[key] or ("keycode " .. key) end
   if type(key) ~= "string" then return nil end
   local all = (type(mods) == "table" and table.concat(mods, " ") or tostring(mods)):lower()
   local out = ""
