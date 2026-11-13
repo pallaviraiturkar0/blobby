@@ -34,6 +34,7 @@ local lastStretch, lastWater, lastPet = os.time(), os.time(), 0
 local tomatoes = 0
 local awayUntil, awayLabel = nil, nil
 local menu
+local hotkeyLabel
 
 -- Prefer an external monitor; fall back to the main screen
 local function screen()
@@ -325,6 +326,24 @@ local function knownMod(s)
   return false
 end
 
+-- Shortcut label for the menu in macOS order, e.g. ⌃⌥⌘B. Raw keycodes are named through hs.keycodes.map.
+local MOD_SYMBOLS = {
+  { "⌃", { "ctrl", "control", "⌃" } }, { "⌥", { "alt", "option", "⌥" } },
+  { "⇧", { "shift", "⇧" } }, { "⌘", { "cmd", "command", "⌘" } },
+}
+local function shortcutLabel(mods, key)
+  if type(key) == "number" then key = hs.keycodes.map[key] or ("keycode " .. key) end
+  if type(key) ~= "string" then return nil end
+  local all = (type(mods) == "table" and table.concat(mods, " ") or tostring(mods)):lower()
+  local out = ""
+  for _, m in ipairs(MOD_SYMBOLS) do
+    for _, n in ipairs(m[2]) do
+      if all:find(n, 1, true) then out = out .. m[1]; break end
+    end
+  end
+  return out .. (#key == 1 and key:upper() or key:sub(1, 1):upper() .. key:sub(2))
+end
+
 local function validMods(mods)
   if type(mods) == "string" then return knownMod(mods) end
   if type(mods) ~= "table" then return false end
@@ -413,6 +432,7 @@ function M.start(opts)
   -- and returns nil when macOS refuses the shortcut
   local ok, hotkey = pcall(hs.hotkey.bind, config.hotkeyMods, config.hotkeyToggle, M.toggle)
   if not ok then hotkey = nil end
+  local label = hotkey and shortcutLabel(config.hotkeyMods, config.hotkeyToggle)
   if not hotkey then
     local mods = config.hotkeyMods
     local isDefault = type(mods) == "table" and table.concat(mods, "+") == table.concat(HOTKEY_DEFAULT_MODS, "+")
@@ -422,9 +442,10 @@ function M.start(opts)
     if not isDefault then
       ok, hotkey = pcall(hs.hotkey.bind, HOTKEY_DEFAULT_MODS, HOTKEY_DEFAULT_KEY, M.toggle)
       if not ok then hotkey = nil end
+      label = hotkey and shortcutLabel(HOTKEY_DEFAULT_MODS, HOTKEY_DEFAULT_KEY)
     end
   end
-  M.hotkey = hotkey
+  M.hotkey, hotkeyLabel = hotkey, label
   M.screenWatcher = hs.screen.watcher.new(M.reposition):start()
 
   moveTimer = hs.timer.doEvery(0.03, step)
@@ -461,7 +482,7 @@ function M.showMenu()
     { title = "👋 I'm back", disabled = not away, fn = function() endAway(true) end },
     { title = "-" },
     { title = "🍅 Today: " .. tomatoes, disabled = true },
-    { title = "Hide Blobby (⌃⌥⌘B)", fn = M.toggle },
+    { title = "Hide Blobby" .. (hotkeyLabel and " (" .. hotkeyLabel .. ")" or ""), fn = M.toggle },
   }
   if focusEnd then table.insert(items, 3, { title = "⏹ Stop focus", fn = function() stopFocus(false) end }) end
   menu = menu or hs.menubar.new(false)

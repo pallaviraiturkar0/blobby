@@ -72,6 +72,7 @@ function Stub.new(opts)
       usercontent = { new = function() return chain({ setCallback = function(self) return self end }) end },
     },
     drawing = { windowLevels = { floating = 3 }, windowBehaviors = { canJoinAllSpaces = 1, stationary = 16 } },
+    keycodes = { map = { [105] = "f13" } },
     -- Like hs.hotkey.bind: throws on an unknown key name, otherwise records the binding
     hotkey = {
       bind = function(mods, key)
