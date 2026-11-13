@@ -292,6 +292,34 @@ test("valid hotkey options are kept", function()
   end
 end)
 
+-- The menu used to always say ⌃⌥⌘B, even with a custom or missing shortcut
+test("the menu shows the shortcut that is actually bound", function()
+  local function hideTitle(env)
+    env.M.showMenu()
+    for _, item in ipairs(env.menuItems) do
+      if item.title:find("^Hide Blobby") then return item.title end
+    end
+  end
+  local cases = {
+    { nil, "Hide Blobby (⌃⌥⌘B)" },
+    { { hotkeyMods = { "cmd", "Shift" }, hotkeyToggle = "k" }, "Hide Blobby (⇧⌘K)" },
+    { { hotkeyMods = "⌘⌥", hotkeyToggle = "f13" }, "Hide Blobby (⌥⌘F13)" },
+    { { hotkeyToggle = "NotAKey" }, "Hide Blobby (⌃⌥⌘B)" },
+  }
+  for i, c in ipairs(cases) do
+    local env = Stub.new()
+    env.start(c[1])
+    eq(hideTitle(env), c[2], "case " .. i)
+    env.restore()
+  end
+
+  local env = Stub.new()
+  env.refuseHotkey = function() return true end
+  env.start({ hotkeyToggle = "K" })
+  eq(hideTitle(env), "Hide Blobby", "no shortcut bound")
+  env.restore()
+end)
+
 for _, t in ipairs(tests) do
   local ok, err = pcall(t.fn)
   Stub.reset()

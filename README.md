@@ -115,7 +115,7 @@ git clone https://github.com/pallaviraiturkar0/blobby.git ~/blobby
 | **Right-click** | Opens the menu: Focus 25 or 50 minutes, 🍜 Lunch, ☕ Coffee, 🚶 Walk, ⏳ BRB, 👋 I'm back, and today's 🍅 count |
 | **Drag** | Moves Blobby to a new home spot, which it remembers |
 | **Hover** | Blobby says something nice 💚 |
-| <kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>B</kbd> | Hides or shows Blobby |
+| <kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>B</kbd> | Hides or shows Blobby. Change it with `hotkeyMods` and `hotkeyToggle`; the right-click menu shows the shortcut in use |
 
 ## ⚙️ Configuration
 
